@@ -17,7 +17,7 @@ import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 
 @ExperimentalCoroutinesApi
-class MainViewModelTest {
+class PdfDownloadViewModelTest {
 
     @get:Rule
     val rule = InstantTaskExecutorRule()
@@ -28,12 +28,12 @@ class MainViewModelTest {
     @Mock
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
 
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: PdfDownloadViewModel
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        viewModel = MainViewModel()
+        viewModel = PdfDownloadViewModel()
     }
 
     @Test

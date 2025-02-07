@@ -19,7 +19,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-class MainViewModel : ViewModel() {
+class PdfDownloadViewModel : ViewModel() {
     private val _permissionGranted = MutableStateFlow(false)
     val permissionGranted = _permissionGranted.asStateFlow()
 
