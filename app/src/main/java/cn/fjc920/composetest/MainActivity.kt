@@ -1,140 +1,75 @@
 package cn.fjc920.composetest
 
-import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import cn.fjc920.composetest.ui.theme.ComposeTestTheme
-import cn.fjc920.composetest.viewModel.PdfDownloadViewModel
+import cn.fjc920.composetest.uiScreen.DownloadPdfScreen
 
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             ComposeTestTheme {
-                // 创建 ViewModel 实例
-                val viewModel = PdfDownloadViewModel()
-
-                // 在应用启动时检查权限状态
-                viewModel.checkInitialPermissionState(this)
-
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        TopAppBar(
-                            title = { Text("我的应用栏") },
-                            navigationIcon = {
-                                IconButton(onClick = { /* 导航图标点击事件 */ }) {
-                                    Icon(
-                                        imageVector = androidx.compose.material.icons.Icons.Filled.Close,
-                                        contentDescription = "Menu"
-                                    )
-                                }
-                            },
-                            actions = {
-                                val context = LocalContext.current
-                                val coroutineScope = rememberCoroutineScope()  // 使用协程作用域
-                                val permissionLauncher = rememberLauncherForActivityResult(
-                                    contract = ActivityResultContracts.RequestPermission()
-                                ) { isGranted ->
-                                    viewModel.onPermissionResult(isGranted)  // 将结果传递给 ViewModel
-                                }
-
-                                val permissionGranted by viewModel.permissionGranted.collectAsState()
-                                val saveResult by viewModel.saveResult.collectAsState()
-
-                                IconButton(onClick = {
-                                    handleDownloadButtonClick(
-                                        context = context,
-                                        coroutineScope = coroutineScope,
-                                        viewModel = viewModel,
-                                        permissionGranted = permissionGranted,
-                                        saveResult = saveResult,
-                                        permissionLauncher = permissionLauncher
-                                    )
-                                }) {
-                                    Icon(
-                                        imageVector = androidx.compose.material.icons.Icons.Filled.Add,
-                                        contentDescription = "Download PDF"
-                                    )
-                                }
-                            },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                            )
-                        )
-                    }
-                ) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                MainScreen()
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-fun handleDownloadButtonClick(
-    context: android.content.Context,
-    coroutineScope: kotlinx.coroutines.CoroutineScope,
-    viewModel: PdfDownloadViewModel,
-    permissionGranted: Boolean,
-    saveResult: String?,
-    permissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
-) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        // 如果权限已授予，异步保存 PDF 文件
-        coroutineScope.launch {
-            viewModel.savePdfToPublicDirectory(context, "测试.pdf")  // 确保路径正确
-            Toast.makeText(context, saveResult, Toast.LENGTH_SHORT).show()
-        }
-    } else {
-        if (permissionGranted) {
-            // 如果权限已授予，异步保存 PDF 文件
-            coroutineScope.launch {
-                viewModel.savePdfToPublicDirectory(context, "测试.pdf")  // 确保路径正确
-                Toast.makeText(context, saveResult, Toast.LENGTH_SHORT).show()
+    @Composable
+    fun MainScreen() {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "main") {
+            composable("main") {
+                MainContent(navController)
             }
-        } else {
-            // 如果权限未授予，请求权限
-            viewModel.requestPermission(permissionLauncher)
+            composable("download") {
+                DownloadPdfScreen()
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun MainContent(navController: NavController) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                TopAppBar(
+                    title = { Text("PDF下载") },
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Main Screen")
+                Button(
+                    onClick = { navController.navigate("download") },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text(text = "Go to Download Screen")
+                }
+            }
         }
     }
 }

@@ -23,8 +23,7 @@ class PdfDownloadViewModel : ViewModel() {
     private val _permissionGranted = MutableStateFlow(false)
     val permissionGranted = _permissionGranted.asStateFlow()
 
-    // 添加保存状态的 Flow
-    private val _saveResult = MutableStateFlow<String?>(null)  // 保存成功时返回文件路径，失败时返回错误消息
+    private val _saveResult = MutableStateFlow<String?>(null)
     val saveResult = _saveResult.asStateFlow()
 
     // 请求权限的方法
@@ -45,34 +44,29 @@ class PdfDownloadViewModel : ViewModel() {
     }
 
     // 保存 PDF 文件到公共目录的方法（异步）
-    suspend fun savePdfToPublicDirectory(context: Context, sourceFilePath: String): Boolean =
+    suspend fun savePdfToPublicDirectory(context: Context, sourceFile: File, fileName: String): String =
         withContext(Dispatchers.IO) {
-            val sourceFile = File(sourceFilePath)
             if (!sourceFile.exists()) {
-                _saveResult.value = "保存失败：文件不存在"  // 文件不存在，保存失败
-                return@withContext false
+                return@withContext "保存失败：文件不存在"
             }
 
             val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                savePdfUsingMediaStore(context, sourceFile)
+                savePdfUsingMediaStore(context, sourceFile, fileName)
             } else {
-                savePdfToPublicDirectoryLegacy(sourceFile)
+                savePdfToPublicDirectoryLegacy(sourceFile, fileName)
             }
 
             if (success) {
-                _saveResult.value = "保存成功：${sourceFile.absolutePath}"  // 保存成功，返回文件路径
+                "保存成功：${sourceFile.absolutePath}"
             } else {
-                _saveResult.value = "保存失败：未知错误"  // 保存失败
+                "保存失败：未知错误"
             }
-
-            return@withContext success
         }
 
     // Android 13 及以上版本：使用 MediaStore 保存文件
     @RequiresApi(Build.VERSION_CODES.Q)
-    private suspend fun savePdfUsingMediaStore(context: Context, sourceFile: File): Boolean =
+    private suspend fun savePdfUsingMediaStore(context: Context, sourceFile: File, fileName: String): Boolean =
         withContext(Dispatchers.IO) {
-            val fileName = sourceFile.name
             val relativePath = "${Environment.DIRECTORY_DOWNLOADS}/$fileName"
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -95,11 +89,11 @@ class PdfDownloadViewModel : ViewModel() {
         }
 
     // Android 13 以下版本：直接保存到公共目录
-    private suspend fun savePdfToPublicDirectoryLegacy(sourceFile: File): Boolean =
+    private suspend fun savePdfToPublicDirectoryLegacy(sourceFile: File, fileName: String): Boolean =
         withContext(Dispatchers.IO) {
             val destinationFile = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                sourceFile.name
+                fileName
             )
             try {
                 FileInputStream(sourceFile).use { inputStream ->
