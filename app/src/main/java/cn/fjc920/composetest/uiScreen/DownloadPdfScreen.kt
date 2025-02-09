@@ -8,10 +8,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,6 +47,7 @@ fun DownloadPdfScreen() {
     val coroutineScope = rememberCoroutineScope()
     var showDialog by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("") }
+    var isEditingFileName by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -102,11 +105,27 @@ fun DownloadPdfScreen() {
                     onDismissRequest = { showDialog = false },
                     title = { Text("请输入文件名") },
                     text = {
-                        TextField(
-                            value = fileName,
-                            onValueChange = { fileName = it },
-                            label = { Text("文件名") }
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isEditingFileName) {
+                                TextField(
+                                    value = fileName,
+                                    onValueChange = { fileName = it },
+                                    label = { Text("文件名") },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            } else {
+                                Text(
+                                    text = fileName.ifBlank { "文件名" },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            IconButton(onClick = { isEditingFileName = !isEditingFileName }) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Edit,
+                                    contentDescription = "Edit"
+                                )
+                            }
+                        }
                     },
                     confirmButton = {
                         TextButton(onClick = {
