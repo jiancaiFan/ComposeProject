@@ -35,8 +35,16 @@ fun DownloadPdfScreen() {
     val context = LocalContext.current
     val viewModel = PdfDownloadViewModel()
     viewModel.checkInitialPermissionState(context)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        viewModel.onPermissionResult(isGranted)  // 将结果传递给 ViewModel
+    }
+    val permissionGranted by viewModel.permissionGranted.collectAsState()
     var downloadPath by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
+    var showDialog by remember { mutableStateOf(false) }
+    var fileName by remember { mutableStateOf("") }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -52,25 +60,13 @@ fun DownloadPdfScreen() {
                     }
                 },
                 actions = {
-                    val permissionLauncher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.RequestPermission()
-                    ) { isGranted ->
-                        viewModel.onPermissionResult(isGranted)  // 将结果传递给 ViewModel
-                    }
-
-                    val permissionGranted by viewModel.permissionGranted.collectAsState()
-                    val saveResult by viewModel.saveResult.collectAsState()
 
                     IconButton(onClick = {
-                        handleDownloadButtonClick(
-                            context = context,
-                            coroutineScope = coroutineScope,
-                            viewModel = viewModel,
-                            permissionGranted = permissionGranted,
-                            saveResult = saveResult,
-                            permissionLauncher = permissionLauncher,
-                            downloadPath = downloadPath
-                        )
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU || permissionGranted){
+                            showDialog = true
+                        } else {
+                            viewModel.requestPermission(permissionLauncher)
+                        }
                     }) {
                         Icon(
                             imageVector = Icons.TwoTone.Share,
@@ -99,6 +95,39 @@ fun DownloadPdfScreen() {
 
             downloadPath?.let {
                 Text(text = "Downloaded to: $it", modifier = Modifier.padding(top = 16.dp))
+            }
+
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = { Text("请输入文件名") },
+                    text = {
+                        TextField(
+                            value = fileName,
+                            onValueChange = { fileName = it },
+                            label = { Text("文件名") }
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showDialog = false
+                            handleDownloadButtonClick(
+                                context = context,
+                                coroutineScope = coroutineScope,
+                                viewModel = viewModel,
+                                downloadPath = downloadPath,
+                                fileName = fileName.ifBlank { "downloaded-file" }
+                            )
+                        }) {
+                            Text("确定")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("取消")
+                        }
+                    }
+                )
             }
         }
     }
@@ -134,27 +163,14 @@ fun handleDownloadButtonClick(
     context: Context,
     coroutineScope: kotlinx.coroutines.CoroutineScope,
     viewModel: PdfDownloadViewModel,
-    permissionGranted: Boolean,
-    saveResult: String?,
-    permissionLauncher: androidx.activity.result.ActivityResultLauncher<String>,
-    downloadPath: String?
+    downloadPath: String?,
+    fileName: String
 ) {
     if (downloadPath == null) {
         Toast.makeText(context, "请先下载PDF文件", Toast.LENGTH_SHORT).show()
         return
     }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        coroutineScope.launch {
-            viewModel.savePdfToPublicDirectory(context, File(downloadPath), "测试.pdf")
-        }
-    } else {
-        if (permissionGranted) {
-            coroutineScope.launch {
-                viewModel.savePdfToPublicDirectory(context, File(downloadPath), "测试.pdf")
-            }
-        } else {
-            viewModel.requestPermission(permissionLauncher)
-        }
+    coroutineScope.launch {
+        viewModel.savePdfToPublicDirectory(context, File(downloadPath), "$fileName.pdf")
     }
 }
