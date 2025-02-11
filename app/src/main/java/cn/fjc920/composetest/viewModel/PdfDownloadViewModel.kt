@@ -23,49 +23,50 @@ class PdfDownloadViewModel : ViewModel() {
     private val _permissionGranted = MutableStateFlow(false)
     val permissionGranted = _permissionGranted.asStateFlow()
 
-    private val _saveResult = MutableStateFlow<String?>(null)
+    private val _saveResult = MutableStateFlow("")
     val saveResult = _saveResult.asStateFlow()
 
-    // 请求权限的方法
+    // Request permission
     fun requestPermission(permissionLauncher: androidx.activity.result.ActivityResultLauncher<String>) {
         permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     }
 
-    // 处理权限请求结果的方法
+    // Handle permission request result
     fun onPermissionResult(isGranted: Boolean) {
         _permissionGranted.value = isGranted
     }
 
-    // 检查初始权限状态
+    // Check initial permission state
     fun checkInitialPermissionState(context: Context) {
         val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
         val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
         _permissionGranted.value = granted
     }
 
-    // 保存 PDF 文件到公共目录的方法（异步）
-    suspend fun savePdfToPublicDirectory(context: Context, sourceFile: File, fileName: String): String =
+    // Save PDF file to public directory (asynchronously)
+    suspend fun savePdfToPublicDirectory(context: Context, sourceFile: File, fileName: String) =
         withContext(Dispatchers.IO) {
             if (!sourceFile.exists()) {
-                return@withContext "保存失败：文件不存在"
+                _saveResult.value = "Save failed: file does not exist"
+                return@withContext
             }
 
-            val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val newPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 savePdfUsingMediaStore(context, sourceFile, fileName)
             } else {
                 savePdfToPublicDirectoryLegacy(sourceFile, fileName)
             }
 
-            if (success) {
-                "保存成功：${sourceFile.absolutePath}"
+            if (newPath != null) {
+                _saveResult.value = "Save successful: $newPath"
             } else {
-                "保存失败：未知错误"
+                _saveResult.value = "Save failed: unknown error"
             }
         }
 
-    // Android 13 及以上版本：使用 MediaStore 保存文件
+    // Android 13 and above: save file using MediaStore
     @RequiresApi(Build.VERSION_CODES.Q)
-    private suspend fun savePdfUsingMediaStore(context: Context, sourceFile: File, fileName: String): Boolean =
+    private suspend fun savePdfUsingMediaStore(context: Context, sourceFile: File, fileName: String): String? =
         withContext(Dispatchers.IO) {
             val relativePath = "${Environment.DIRECTORY_DOWNLOADS}/$fileName"
             val contentValues = ContentValues().apply {
@@ -82,14 +83,14 @@ class PdfDownloadViewModel : ViewModel() {
                         inputStream.copyTo(outputStream!!)
                     }
                 }
-                return@withContext true
+                return@withContext it.toString()
             } ?: run {
-                return@withContext false
+                return@withContext null
             }
         }
 
-    // Android 13 以下版本：直接保存到公共目录
-    private suspend fun savePdfToPublicDirectoryLegacy(sourceFile: File, fileName: String): Boolean =
+    // Android 13 and below: save directly to public directory
+    private suspend fun savePdfToPublicDirectoryLegacy(sourceFile: File, fileName: String): String? =
         withContext(Dispatchers.IO) {
             val destinationFile = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
@@ -101,10 +102,10 @@ class PdfDownloadViewModel : ViewModel() {
                         inputStream.copyTo(outputStream)
                     }
                 }
-                return@withContext true
+                return@withContext destinationFile.absolutePath
             } catch (e: Exception) {
                 e.printStackTrace()
-                return@withContext false
+                return@withContext null
             }
         }
 }

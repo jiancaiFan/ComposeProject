@@ -43,11 +43,10 @@ fun DownloadPdfScreen() {
         viewModel.onPermissionResult(isGranted)  // 将结果传递给 ViewModel
     }
     val permissionGranted by viewModel.permissionGranted.collectAsState()
+    val saveResult by viewModel.saveResult.collectAsState()
     var downloadPath by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
-    var showDialog by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("") }
-    var isEditingFileName by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -66,7 +65,13 @@ fun DownloadPdfScreen() {
 
                     IconButton(onClick = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU || permissionGranted){
-                            showDialog = true
+                            handleDownloadButtonClick(
+                                context = context,
+                                coroutineScope = coroutineScope,
+                                viewModel = viewModel,
+                                downloadPath = downloadPath,
+                                fileName = fileName.ifBlank { "downloaded-file" }
+                            )
                         } else {
                             viewModel.requestPermission(permissionLauncher)
                         }
@@ -98,55 +103,6 @@ fun DownloadPdfScreen() {
 
             downloadPath?.let {
                 Text(text = "Downloaded to: $it", modifier = Modifier.padding(top = 16.dp))
-            }
-
-            if (showDialog) {
-                AlertDialog(
-                    onDismissRequest = { showDialog = false },
-                    title = { Text("请输入文件名") },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (isEditingFileName) {
-                                TextField(
-                                    value = fileName,
-                                    onValueChange = { fileName = it },
-                                    label = { Text("文件名") },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            } else {
-                                Text(
-                                    text = fileName.ifBlank { "文件名" },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            IconButton(onClick = { isEditingFileName = !isEditingFileName }) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Edit,
-                                    contentDescription = "Edit"
-                                )
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showDialog = false
-                            handleDownloadButtonClick(
-                                context = context,
-                                coroutineScope = coroutineScope,
-                                viewModel = viewModel,
-                                downloadPath = downloadPath,
-                                fileName = fileName.ifBlank { "downloaded-file" }
-                            )
-                        }) {
-                            Text("确定")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("取消")
-                        }
-                    }
-                )
             }
         }
     }
