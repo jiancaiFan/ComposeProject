@@ -8,12 +8,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import cn.fjc920.composetest.viewModel.PdfDownloadViewModel
+import cn.fjc920.composetest.viewModel.SaveResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,9 +46,11 @@ fun DownloadPdfScreen() {
     var downloadPath by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
     var fileName by remember { mutableStateOf("") }
+    val snackBarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("我的应用栏") },
@@ -62,9 +63,8 @@ fun DownloadPdfScreen() {
                     }
                 },
                 actions = {
-
                     IconButton(onClick = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU || permissionGranted){
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU || permissionGranted) {
                             handleDownloadButtonClick(
                                 context = context,
                                 coroutineScope = coroutineScope,
@@ -103,6 +103,29 @@ fun DownloadPdfScreen() {
 
             downloadPath?.let {
                 Text(text = "Downloaded to: $it", modifier = Modifier.padding(top = 16.dp))
+            }
+
+            LaunchedEffect(saveResult) {
+                saveResult?.let { result ->
+                    when (result) {
+                        is SaveResult.Success -> {
+                            snackBarHostState.showSnackbar(
+                            message = "Saved: ${result.path}",
+                            actionLabel = null,
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                            )
+                        }
+                        is SaveResult.Failure -> {
+                            snackBarHostState.showSnackbar(
+                            message = "Save failed: ${result.reason}",
+                            actionLabel = null,
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+                }
             }
         }
     }

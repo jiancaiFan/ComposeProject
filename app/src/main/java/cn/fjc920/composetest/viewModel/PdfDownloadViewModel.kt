@@ -19,11 +19,16 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+sealed class SaveResult {
+    data class Success(val path: String) : SaveResult()
+    data class Failure(val reason: String) : SaveResult()
+}
+
 class PdfDownloadViewModel : ViewModel() {
     private val _permissionGranted = MutableStateFlow(false)
     val permissionGranted = _permissionGranted.asStateFlow()
 
-    private val _saveResult = MutableStateFlow("")
+    private val _saveResult = MutableStateFlow<SaveResult?>(null)
     val saveResult = _saveResult.asStateFlow()
 
     // Request permission
@@ -47,7 +52,7 @@ class PdfDownloadViewModel : ViewModel() {
     suspend fun savePdfToPublicDirectory(context: Context, sourceFile: File, fileName: String) =
         withContext(Dispatchers.IO) {
             if (!sourceFile.exists()) {
-                _saveResult.value = "Save failed: file does not exist"
+                _saveResult.value = SaveResult.Failure("File does not exist")
                 return@withContext
             }
 
@@ -58,9 +63,9 @@ class PdfDownloadViewModel : ViewModel() {
             }
 
             if (newPath != null) {
-                _saveResult.value = "Save successful: $newPath"
+                _saveResult.value = SaveResult.Success(newPath)
             } else {
-                _saveResult.value = "Save failed: unknown error"
+                _saveResult.value = SaveResult.Failure("Unknown error")
             }
         }
 
