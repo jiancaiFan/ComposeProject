@@ -16,24 +16,40 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+/**
+ * Represents the result of a save operation.
+ */
 sealed class SaveResult {
     data class Success(val path: String) : SaveResult()
     data class Failure(val reason: String) : SaveResult()
 }
 
+/**
+ * ViewModel for handling PDF download and save operations.
+ */
 class PdfDownloadViewModel : ViewModel() {
+    // StateFlow for permission granted status
     private val _permissionGranted = MutableStateFlow(false)
     var permissionGranted = _permissionGranted.asStateFlow()
 
+    // StateFlow for save result
     private val _saveResult = MutableStateFlow<SaveResult?>(null)
     var saveResult = _saveResult.asStateFlow()
 
-    // Handle permission request result
+    /**
+     * Update the permission granted status.
+     * @param isGranted Whether the permission is granted.
+     */
     fun onPermissionResult(isGranted: Boolean) {
         _permissionGranted.value = isGranted
     }
 
-    // Save PDF file to public directory (asynchronously)
+    /**
+     * Save a PDF file to the public directory asynchronously.
+     * @param context The context to use for accessing resources.
+     * @param sourceFile The source file to save.
+     * @param fileName The name of the file to save.
+     */
     suspend fun savePdfToPublicDirectory(context: Context, sourceFile: File, fileName: String) =
         withContext(Dispatchers.IO) {
             if (!sourceFile.exists()) {
@@ -54,7 +70,13 @@ class PdfDownloadViewModel : ViewModel() {
             }
         }
 
-    // Android 13 and above: save file using MediaStore
+    /**
+     * Save a PDF file using MediaStore for Android 13 and above.
+     * @param context The context to use for accessing resources.
+     * @param sourceFile The source file to save.
+     * @param fileName The name of the file to save.
+     * @return The path of the saved file or null if saving failed.
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun savePdfUsingMediaStore(context: Context, sourceFile: File, fileName: String): String? =
         withContext(Dispatchers.IO) {
@@ -79,7 +101,12 @@ class PdfDownloadViewModel : ViewModel() {
             }
         }
 
-    // Android 13 and below: save directly to public directory
+    /**
+     * Save a PDF file directly to the public directory for Android 13 and below.
+     * @param sourceFile The source file to save.
+     * @param fileName The name of the file to save.
+     * @return The path of the saved file or null if saving failed.
+     */
     private suspend fun savePdfToPublicDirectoryLegacy(sourceFile: File, fileName: String): String? =
         withContext(Dispatchers.IO) {
             val destinationFile = File(
