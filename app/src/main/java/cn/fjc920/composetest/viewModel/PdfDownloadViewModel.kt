@@ -31,21 +31,9 @@ class PdfDownloadViewModel : ViewModel() {
     private val _saveResult = MutableStateFlow<SaveResult?>(null)
     val saveResult = _saveResult.asStateFlow()
 
-    // Request permission
-    fun requestPermission(permissionLauncher: androidx.activity.result.ActivityResultLauncher<String>) {
-        permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
-
     // Handle permission request result
     fun onPermissionResult(isGranted: Boolean) {
         _permissionGranted.value = isGranted
-    }
-
-    // Check initial permission state
-    fun checkInitialPermissionState(context: Context) {
-        val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
-        val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-        _permissionGranted.value = granted
     }
 
     // Save PDF file to public directory (asynchronously)

@@ -35,9 +35,6 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="testSavePdfUsingMediaStore()">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="testInitialPermissionState()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>

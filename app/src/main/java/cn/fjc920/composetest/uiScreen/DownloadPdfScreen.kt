@@ -1,6 +1,8 @@
 package cn.fjc920.composetest.uiScreen
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import android.widget.Toast
@@ -19,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import cn.fjc920.composetest.viewModel.PdfDownloadViewModel
 import cn.fjc920.composetest.viewModel.SaveResult
 import kotlinx.coroutines.Dispatchers
@@ -35,11 +38,11 @@ import java.net.URL
 fun DownloadPdfScreen() {
     val context = LocalContext.current
     val viewModel = PdfDownloadViewModel()
-    viewModel.checkInitialPermissionState(context)
+    checkInitialPermissionState(context, viewModel)
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        viewModel.onPermissionResult(isGranted)  // 将结果传递给 ViewModel
+        viewModel.onPermissionResult(isGranted)
     }
     val permissionGranted by viewModel.permissionGranted.collectAsState()
     val saveResult by viewModel.saveResult.collectAsState()
@@ -73,7 +76,8 @@ fun DownloadPdfScreen() {
                                 fileName = fileName.ifBlank { "downloaded-file" }
                             )
                         } else {
-                            viewModel.requestPermission(permissionLauncher)
+                            // Request permission
+                            permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         }
                     }) {
                         Icon(
@@ -129,6 +133,13 @@ fun DownloadPdfScreen() {
             }
         }
     }
+}
+
+// Check initial permission state
+fun checkInitialPermissionState(context: Context, viewModel: PdfDownloadViewModel) {
+    val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
+    val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    viewModel.onPermissionResult(granted)
 }
 
 suspend fun downloadPdf(context: Context): String? {
