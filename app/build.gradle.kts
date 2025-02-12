@@ -41,6 +41,11 @@ android {
 
 dependencies {
 
+
+    implementation(libs.androidx.rules)
+    // Add this dependency for InstantTaskExecutorRule
+    //testImplementation 'androidx.arch.core:core-testing:2.1.0'
+
     // JUnit 4 for unit testing
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.androidx.core.testing)
@@ -73,6 +78,8 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.compose.ui.ui.test.junit43)
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.6")
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }

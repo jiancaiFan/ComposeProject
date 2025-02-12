@@ -1,15 +1,12 @@
 package cn.fjc920.composetest.viewModel
 
-import android.Manifest
 import android.content.ContentValues
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,10 +23,10 @@ sealed class SaveResult {
 
 class PdfDownloadViewModel : ViewModel() {
     private val _permissionGranted = MutableStateFlow(false)
-    val permissionGranted = _permissionGranted.asStateFlow()
+    var permissionGranted = _permissionGranted.asStateFlow()
 
     private val _saveResult = MutableStateFlow<SaveResult?>(null)
-    val saveResult = _saveResult.asStateFlow()
+    var saveResult = _saveResult.asStateFlow()
 
     // Handle permission request result
     fun onPermissionResult(isGranted: Boolean) {

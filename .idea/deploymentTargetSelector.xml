@@ -24,9 +24,9 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="testSavePdfToPublicDirectory_Legacy()">
+      <SelectionState runConfigName="DownloadPdfScreenTest">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-02-08T19:25:00.863026100Z">
+        <DropdownSelection timestamp="2025-02-12T11:41:41.071699Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\11069\.android\avd\Pixel_9_Pro_API_34.avd" />
@@ -35,7 +35,7 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="testInitialPermissionState()">
+      <SelectionState runConfigName="testDownloadPdfButton()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
