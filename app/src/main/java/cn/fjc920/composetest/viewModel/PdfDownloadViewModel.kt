@@ -107,7 +107,7 @@ class PdfDownloadViewModel : ViewModel() {
      * @param fileName The name of the file to save.
      * @return The path of the saved file or null if saving failed.
      */
-    private suspend fun savePdfToPublicDirectoryLegacy(sourceFile: File, fileName: String): String? =
+    suspend fun savePdfToPublicDirectoryLegacy(sourceFile: File, fileName: String): String? =
         withContext(Dispatchers.IO) {
             val destinationFile = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),

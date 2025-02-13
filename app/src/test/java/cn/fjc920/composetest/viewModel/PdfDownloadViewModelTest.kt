@@ -16,9 +16,14 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.junit.runner.RunWith
 import java.io.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [Build.VERSION_CODES.TIRAMISU])
 class PdfDownloadViewModelTest {
 
     @get:Rule
@@ -38,6 +43,7 @@ class PdfDownloadViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkAll()
     }
 
     @Test
@@ -47,34 +53,6 @@ class PdfDownloadViewModelTest {
 
         viewModel.onPermissionResult(false)
         assert(!viewModel.permissionGranted.value)
-    }
-
-    @Test
-    fun `test savePdfToPublicDirectory success`() = runTest {
-        every { sourceFile.exists() } returns true
-        mockkStatic(Environment::class)
-        val destinationFile: File = mockk(relaxed = true)
-        every { Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) } returns destinationFile
-
-        mockkConstructor(FileInputStream::class)
-        mockkConstructor(FileOutputStream::class)
-
-        every { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) } answers {
-            val block = this.invocation.args[0] as (FileInputStream) -> Unit
-            block(mockk(relaxed = true))
-        }
-
-        every { anyConstructed<FileOutputStream>().use(any<((FileOutputStream) -> Unit)>()) } answers {
-            val block = this.invocation.args[0] as (FileOutputStream) -> Unit
-            block(mockk(relaxed = true))
-        }
-
-        viewModel.savePdfToPublicDirectory(context, sourceFile, fileName)
-
-        verify { sourceFile.exists() }
-        verify { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) }
-        verify { anyConstructed<FileOutputStream>().use(any<((FileOutputStream) -> Unit)>()) }
-        assert(viewModel.saveResult.value is SaveResult.Success)
     }
 
     @Test
@@ -139,5 +117,48 @@ class PdfDownloadViewModelTest {
             coVerify { sourceFile.exists() }
             assert(viewModel.saveResult.value is SaveResult.Failure)
         }
+    }
+
+    @Test
+    fun `test savePdfToPublicDirectoryLegacy success`() = runTest {
+        every { sourceFile.exists() } returns true
+        val destinationFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
+
+        mockkConstructor(FileOutputStream::class)
+        mockkConstructor(FileInputStream::class)
+
+        coEvery { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) } answers {
+            val block = this.invocation.args[0] as (FileInputStream) -> Unit
+            block(mockk(relaxed = true))
+        }
+
+        coEvery { anyConstructed<FileOutputStream>().use(any<((FileOutputStream) -> Unit)>()) } answers {
+            val block = this.invocation.args[0] as (FileOutputStream) -> Unit
+            block(mockk(relaxed = true))
+        }
+
+        val result = viewModel.savePdfToPublicDirectoryLegacy(sourceFile, fileName)
+
+        coVerify { sourceFile.exists() }
+        coVerify { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) }
+        coVerify { anyConstructed<FileOutputStream>().use(any<((FileOutputStream) -> Unit)>()) }
+        assert(result == destinationFile.absolutePath)
+    }
+
+    @Test
+    fun `test savePdfToPublicDirectoryLegacy failure`() = runTest {
+        every { sourceFile.exists() } returns true
+        val destinationFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
+
+        mockkConstructor(FileOutputStream::class)
+        mockkConstructor(FileInputStream::class)
+
+        coEvery { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) } throws IOException()
+
+        val result = viewModel.savePdfToPublicDirectoryLegacy(sourceFile, fileName)
+
+        coVerify { sourceFile.exists() }
+        coVerify { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) }
+        assert(result == null)
     }
 }
