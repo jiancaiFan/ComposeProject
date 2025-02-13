@@ -41,27 +41,6 @@ android {
 
 dependencies {
 
-
-    implementation(libs.androidx.rules)
-    // Add this dependency for InstantTaskExecutorRule
-    //testImplementation 'androidx.arch.core:core-testing:2.1.0'
-
-    // JUnit 4 for unit testing
-    testImplementation("junit:junit:4.13.2")
-    testImplementation(libs.androidx.core.testing)
-
-    // AndroidX Test core library for Android testing
-    androidTestImplementation("androidx.test:core:1.4.0")
-
-    // AndroidX Arch core testing library for ViewModel testing
-    androidTestImplementation("androidx.arch.core:core-testing:2.1.0")
-
-    // Kotlin Coroutines Test library
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0")
-
-    // Robolectric for Android unit tests
-    testImplementation("org.robolectric:robolectric:4.7.3")
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -72,14 +51,28 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    androidTestImplementation(libs.androidx.compose.ui.ui.test.junit43)
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.6")
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // JUnit
+    testImplementation("junit:junit:4.13.2")
+
+    implementation("com.google.android.material:material:1.9.0")
+
+    // Mockk
+    testImplementation("io.mockk:mockk:1.12.0")
+
+    // Kotlin Coroutines Test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0")
+
+    // AndroidX Core Testing
+    testImplementation("androidx.arch.core:core-testing:2.1.0")
+
+    // Mockk Android (for mocking Android classes)
+    androidTestImplementation("io.mockk:mockk-android:1.12.0")
 }

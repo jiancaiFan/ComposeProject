@@ -1,6 +1,5 @@
 [versions]
 agp = "8.8.0"
-androidxUiTestJunit4Version = "1.7.6"
 kotlin = "2.1.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -11,12 +10,8 @@ activityCompose = "1.9.3"
 composeBom = "2024.12.01"
 navigationRuntimeKtx = "2.8.6"
 navigationCompose = "2.8.6"
-coreKtxVersion = "1.6.1"
-coreTesting = "2.1.0"
-rules = "1.6.1"
 
 [libraries]
-androidx-compose-ui-ui-test-junit43 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "androidxUiTestJunit4Version" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -33,9 +28,6 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
-androidx-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "coreTesting" }
-androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
