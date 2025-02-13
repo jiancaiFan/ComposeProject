@@ -19,7 +19,10 @@ This PR introduces a new feature in the `PdfScreen` interface, allowing users to
 - Tested the download and save functionality of PDF files on devices with Android 13 and above.
 - Tested the download and save functionality of PDF files on devices with Android versions below 13.
 - Tested the permission request and handling logic to ensure permissions are requested when not granted and operations continue after permissions are granted.
+<<<<<<< HEAD
 
 ---
 
 Please review the code before merging to ensure all functions are working correctly. If there are any questions or suggestions, please feel free to contact me. Thank you!
+=======
+>>>>>>> c94f7d9b1d5aec29e75cbf1a4cf0f572445e6d0a
