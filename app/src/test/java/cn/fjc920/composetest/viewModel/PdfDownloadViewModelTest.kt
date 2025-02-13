@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,10 +16,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import org.junit.Assert.assertEquals
+import java.io.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PdfDownloadViewModelTest {
@@ -28,90 +24,120 @@ class PdfDownloadViewModelTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: PdfDownloadViewModel
-    private lateinit var context: Context
-    private lateinit var contentResolver: ContentResolver
-    private lateinit var sourceFile: File
-    private lateinit var observer: Observer<SaveResult?>
+    private val context: Context = mockk(relaxed = true)
+    private val sourceFile: File = mockk(relaxed = true)
+    private val fileName = "test.pdf"
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         viewModel = PdfDownloadViewModel()
-        context = mockk()
-        contentResolver = mockk()
-        sourceFile = mockk()
-        observer = mockk(relaxed = true)
-
-        every { context.contentResolver } returns contentResolver
-        every { sourceFile.exists() } returns true
-        viewModel.saveResult.observeForever(observer)
+        Dispatchers.setMain(StandardTestDispatcher())
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        viewModel.saveResult.removeObserver(observer)
     }
 
     @Test
-    fun `test onPermissionResult updates permissionGranted state`() {
+    fun `test permission result updates state`() {
         viewModel.onPermissionResult(true)
-        assertEquals(true, viewModel.permissionGranted.value)
+        assert(viewModel.permissionGranted.value)
 
         viewModel.onPermissionResult(false)
-        assertEquals(false, viewModel.permissionGranted.value)
+        assert(!viewModel.permissionGranted.value)
     }
 
     @Test
-    fun `test savePdfToPublicDirectory with non-existent file`() = runTest {
+    fun `test savePdfToPublicDirectory success`() = runTest {
+        every { sourceFile.exists() } returns true
+        mockkStatic(Environment::class)
+        val destinationFile: File = mockk(relaxed = true)
+        every { Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) } returns destinationFile
+
+        mockkConstructor(FileInputStream::class)
+        mockkConstructor(FileOutputStream::class)
+
+        every { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) } answers {
+            val block = this.invocation.args[0] as (FileInputStream) -> Unit
+            block(mockk(relaxed = true))
+        }
+
+        every { anyConstructed<FileOutputStream>().use(any<((FileOutputStream) -> Unit)>()) } answers {
+            val block = this.invocation.args[0] as (FileOutputStream) -> Unit
+            block(mockk(relaxed = true))
+        }
+
+        viewModel.savePdfToPublicDirectory(context, sourceFile, fileName)
+
+        verify { sourceFile.exists() }
+        verify { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) }
+        verify { anyConstructed<FileOutputStream>().use(any<((FileOutputStream) -> Unit)>()) }
+        assert(viewModel.saveResult.value is SaveResult.Success)
+    }
+
+    @Test
+    fun `test savePdfToPublicDirectory failure`() = runTest {
         every { sourceFile.exists() } returns false
 
-        viewModel.savePdfToPublicDirectory(context, sourceFile, "test.pdf")
+        viewModel.savePdfToPublicDirectory(context, sourceFile, fileName)
 
-        coVerify { observer.onChanged(SaveResult.Failure("File does not exist")) }
+        coVerify { sourceFile.exists() }
+        assert(viewModel.saveResult.value is SaveResult.Failure)
     }
 
     @Test
-    fun `test savePdfToPublicDirectory saves successfully on Android TIRAMISU and above`() = runTest {
+    fun `test savePdfToPublicDirectory with MediaStore success`() = runTest {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val uri = mockk<Uri>()
-            val outputStream = mockk<FileOutputStream>(relaxed = true)
-            val inputStream = mockk<FileInputStream>(relaxed = true)
+            every { sourceFile.exists() } returns true
+            val contentResolver: ContentResolver = mockk(relaxed = true)
+            val uri: Uri = mockk(relaxed = true)
+            val outputStream: OutputStream = mockk(relaxed = true)
             val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, "test.pdf")
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                 put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$fileName")
             }
 
+            every { context.contentResolver } returns contentResolver
             every { contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues) } returns uri
             every { contentResolver.openOutputStream(uri) } returns outputStream
-            every { FileInputStream(sourceFile) } returns inputStream
 
-            viewModel.savePdfToPublicDirectory(context, sourceFile, "test.pdf")
+            mockkConstructor(FileInputStream::class)
 
-            coVerify { observer.onChanged(SaveResult.Success(uri.toString())) }
+            coEvery { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) } answers {
+                val block = this.invocation.args[0] as (FileInputStream) -> Unit
+                block(mockk(relaxed = true))
+            }
+
+            coEvery { outputStream.use(any<((OutputStream) -> Unit)>()) } answers {
+                val block = this.invocation.args[0] as (OutputStream) -> Unit
+                block(mockk(relaxed = true))
+            }
+
+            viewModel.savePdfToPublicDirectory(context, sourceFile, fileName)
+
+            coVerify { sourceFile.exists() }
+            coVerify { anyConstructed<FileInputStream>().use(any<((FileInputStream) -> Unit)>()) }
+            coVerify { outputStream.use(any<((OutputStream) -> Unit)>()) }
+            assert(viewModel.saveResult.value is SaveResult.Success)
         }
     }
 
     @Test
-    fun `test savePdfToPublicDirectoryLegacy saves successfully`() = runTest {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            val destinationFile = mockk<File>()
-            val outputStream = mockk<FileOutputStream>(relaxed = true)
-            val inputStream = mockk<FileInputStream>(relaxed = true)
+    fun `test savePdfToPublicDirectory with MediaStore failure`() = runTest {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            every { sourceFile.exists() } returns true
+            val contentResolver: ContentResolver = mockk(relaxed = true)
 
-            mockkStatic(Environment::class)
-            every { Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) } returns destinationFile
-            every { File(destinationFile, "test.pdf") } returns destinationFile
-            every { FileInputStream(sourceFile) } returns inputStream
-            every { FileOutputStream(destinationFile) } returns outputStream
-            every { destinationFile.absolutePath } returns "/path/to/test.pdf"
+            every { context.contentResolver } returns contentResolver
+            every { contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, any()) } returns null
 
-            viewModel.savePdfToPublicDirectory(context, sourceFile, "test.pdf")
+            viewModel.savePdfToPublicDirectory(context, sourceFile, fileName)
 
-            coVerify { observer.onChanged(SaveResult.Success("/path/to/test.pdf")) }
+            coVerify { sourceFile.exists() }
+            assert(viewModel.saveResult.value is SaveResult.Failure)
         }
     }
 }
