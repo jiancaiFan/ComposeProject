@@ -13,7 +13,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import cn.fjc920.composetest.viewModel.PdfDownloadViewModel
-import cn.fjc920.composetest.viewModel.SaveResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
@@ -42,7 +41,7 @@ class DownloadPdfScreenTest {
 
     @Test
     fun testSnackBarOnDownloadSuccess() {
-        val saveResultFlow = MutableStateFlow<SaveResult?>(SaveResult.Success("/path/to/downloaded-file.pdf"))
+        val saveResultFlow = MutableStateFlow<`SaveResult.kt`?>(`SaveResult.kt`.Success("/path/to/downloaded-file.pdf"))
         mockViewModel.permissionGranted = MutableStateFlow(true)
         mockViewModel.saveResult = saveResultFlow
 
@@ -56,7 +55,7 @@ class DownloadPdfScreenTest {
 
     @Test
     fun testSnackBarOnDownloadFailure() {
-        val saveResultFlow = MutableStateFlow<SaveResult?>(SaveResult.Failure("File does not exist"))
+        val saveResultFlow = MutableStateFlow<`SaveResult.kt`?>(`SaveResult.kt`.Failure("File does not exist"))
         mockViewModel.permissionGranted = MutableStateFlow(true)
         mockViewModel.saveResult = saveResultFlow
 

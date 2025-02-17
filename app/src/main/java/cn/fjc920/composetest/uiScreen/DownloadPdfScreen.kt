@@ -23,6 +23,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import cn.fjc920.composetest.viewModel.PdfDownloadViewModel
+import cn.fjc920.composetest.viewModel.MediaStorePdfSaver
+import cn.fjc920.composetest.viewModel.LegacyPdfSaver
 import cn.fjc920.composetest.viewModel.SaveResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,7 +39,7 @@ import java.net.URL
 @Composable
 fun DownloadPdfScreen() {
     val context = LocalContext.current
-    val viewModel = PdfDownloadViewModel()
+    val viewModel = PdfDownloadViewModel(MediaStorePdfSaver(), LegacyPdfSaver())
     checkInitialPermissionState(context, viewModel)
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -114,18 +116,18 @@ fun DownloadPdfScreen() {
                     when (result) {
                         is SaveResult.Success -> {
                             snackBarHostState.showSnackbar(
-                            message = "Saved: ${result.path}",
-                            actionLabel = null,
-                            withDismissAction = true,
-                            duration = SnackbarDuration.Short
+                                message = "Saved: ${result.path}",
+                                actionLabel = null,
+                                withDismissAction = true,
+                                duration = SnackbarDuration.Short
                             )
                         }
                         is SaveResult.Failure -> {
                             snackBarHostState.showSnackbar(
-                            message = "Save failed: ${result.reason}",
-                            actionLabel = null,
-                            withDismissAction = true,
-                            duration = SnackbarDuration.Short
+                                message = "Save failed: ${result.reason}",
+                                actionLabel = null,
+                                withDismissAction = true,
+                                duration = SnackbarDuration.Short
                             )
                         }
                     }
