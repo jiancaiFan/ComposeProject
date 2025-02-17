@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.lang.Appendable
 
 /**
  * Represents the result of a save operation.
@@ -27,7 +29,7 @@ sealed class SaveResult {
 /**
  * ViewModel for handling PDF download and save operations.
  */
-class PdfDownloadViewModel : ViewModel() {
+class PdfDownloadViewModel : ViewModel(){
     // StateFlow for permission granted status
     private val _permissionGranted = MutableStateFlow(false)
     var permissionGranted = _permissionGranted.asStateFlow()
@@ -78,7 +80,7 @@ class PdfDownloadViewModel : ViewModel() {
      * @return The path of the saved file or null if saving failed.
      */
     @RequiresApi(Build.VERSION_CODES.Q)
-    private suspend fun savePdfUsingMediaStore(context: Context, sourceFile: File, fileName: String): String? =
+    suspend fun savePdfUsingMediaStore(context: Context, sourceFile: File, fileName: String): String? =
         withContext(Dispatchers.IO) {
             val relativePath = "${Environment.DIRECTORY_DOWNLOADS}/$fileName"
             val contentValues = ContentValues().apply {

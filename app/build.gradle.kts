@@ -60,6 +60,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // AndroidX Core Testing
+    testImplementation ("androidx.arch.core:core-testing:2.1.0")
+
     //testImplementation 'org.robolectric:robolectric:4.9'
 
     testImplementation("org.robolectric:robolectric:4.9")
@@ -80,4 +83,5 @@ dependencies {
 
     // Mockk Android (for mocking Android classes)
     androidTestImplementation("io.mockk:mockk-android:1.12.0")
+    implementation(kotlin("test"))
 }
