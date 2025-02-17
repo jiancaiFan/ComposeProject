@@ -14,17 +14,11 @@ import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [Build.VERSION_CODES.Q])
 class PdfDownloadViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
@@ -35,7 +29,9 @@ class PdfDownloadViewModelTest {
     private lateinit var mockContext: Context
     private lateinit var mockContentResolver: ContentResolver
     private lateinit var mockUri: Uri
+    private lateinit var mockPublicDirectory: File
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
@@ -43,15 +39,22 @@ class PdfDownloadViewModelTest {
         mockContext = mockk()
         mockContentResolver = mockk()
         mockUri = mockk()
+        mockPublicDirectory = File("mock" + File.separator + "downloads")
 
         viewModel = PdfDownloadViewModel()
         every { mockContext.contentResolver } returns mockContentResolver
+
+        // Mock Environment.getExternalStoragePublicDirectory method
+        mockkStatic(Environment::class)
+        every { Environment.getExternalStoragePublicDirectory(any()) } returns mockPublicDirectory
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @After
     fun tearDown() {
         Dispatchers.resetMain()
         testScope.cancel()
+        unmockkAll() // Unmock all static mocks
     }
 
     @Test
@@ -87,10 +90,6 @@ class PdfDownloadViewModelTest {
 
     @Test
     fun testSavePdfToPublicDirectory_FileExists_BelowAndroid10() = testScope.runTest {
-        mockkStatic(Environment::class)
-        val mockPublicDirectory = File("mock" + File.separator + "downloads")
-        every { Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) } returns mockPublicDirectory
-
         val sourceFile = File.createTempFile("source", ".pdf")
         val fileName = "test.pdf"
 
@@ -102,10 +101,6 @@ class PdfDownloadViewModelTest {
 
     @Test
     fun testSavePdfToPublicDirectoryLegacy_Success() = testScope.runTest {
-        mockkStatic(Environment::class)
-        val mockPublicDirectory = File("mock" + File.separator + "downloads")
-        every { Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) } returns mockPublicDirectory
-
         val sourceFile = File.createTempFile("source", ".pdf")
         val fileName = "test.pdf"
         val result = viewModel.savePdfToPublicDirectoryLegacy(sourceFile, fileName)
@@ -155,10 +150,6 @@ class PdfDownloadViewModelTest {
 
     @Test
     fun testSavePdfToPublicDirectoryLegacy_Failure() = testScope.runTest {
-        mockkStatic(Environment::class)
-        val mockPublicDirectory = File("mock" + File.separator + "downloads")
-        every { Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) } returns mockPublicDirectory
-
         val sourceFile = File("non_existent_source.pdf")
         val fileName = "test.pdf"
         val result = viewModel.savePdfToPublicDirectoryLegacy(sourceFile, fileName)
