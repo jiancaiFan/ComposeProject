@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.fjc920.composetest.ui.theme.ComposeTestTheme
 import cn.fjc920.composetest.uiScreen.DownloadPdfScreen
+import cn.fjc920.composetest.uiScreen.ShimmerScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -39,6 +40,9 @@ class MainActivity : ComponentActivity() {
             composable("download") {
                 DownloadPdfScreen()
             }
+            composable("shimmerScreen"){
+                ShimmerScreen()
+            }
         }
     }
 
@@ -61,12 +65,18 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Main Screen")
                 Button(
                     onClick = { navController.navigate("download") },
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text(text = "Go to Download Screen")
+                }
+
+                Button(
+                    onClick = { navController.navigate("shimmerScreen") },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text(text = "Go to Shimmer Screen")
                 }
             }
         }
