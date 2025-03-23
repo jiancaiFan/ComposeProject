@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.fjc920.composetest.ui.theme.ComposeTestTheme
 import cn.fjc920.composetest.uiScreen.DownloadPdfScreen
+import cn.fjc920.composetest.uiScreen.MoreActionsScreen
 import cn.fjc920.composetest.uiScreen.ShimmerScreen
 
 class MainActivity : ComponentActivity() {
@@ -40,8 +41,13 @@ class MainActivity : ComponentActivity() {
             composable("download") {
                 DownloadPdfScreen()
             }
-            composable("shimmerScreen"){
+            composable("shimmerScreen") {
                 ShimmerScreen()
+            }
+            composable(route = "moreActionsScreen") {
+                MoreActionsScreen {
+                    navController.popBackStack()
+                }
             }
         }
     }
@@ -50,13 +56,11 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun MainContent(navController: NavController) {
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
+            modifier = Modifier.fillMaxSize(), topBar = {
                 TopAppBar(
                     title = { Text("PDF下载") },
                 )
-            }
-        ) { innerPadding ->
+            }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -77,6 +81,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text(text = "Go to Shimmer Screen")
+                }
+
+                Button(
+                    onClick = { navController.navigate("moreActionsScreen") },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text(text = "Go to MoreActions Screen")
                 }
             }
         }
