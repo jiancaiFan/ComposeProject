@@ -10,12 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.fjc920.composetest.ui.theme.ComposeTestTheme
 import cn.fjc920.composetest.uiScreen.DownloadPdfScreen
+import cn.fjc920.composetest.uiScreen.LoadMoreScreen
 import cn.fjc920.composetest.uiScreen.MoreActionsScreen
 import cn.fjc920.composetest.uiScreen.ShimmerScreen
 
@@ -46,6 +49,11 @@ class MainActivity : ComponentActivity() {
             }
             composable(route = "moreActionsScreen") {
                 MoreActionsScreen {
+                    navController.popBackStack()
+                }
+            }
+            composable(route = "loadMoreScreen") {
+                LoadMoreScreen (title = "LoadMore", viewModel = viewModel()){
                     navController.popBackStack()
                 }
             }
@@ -88,6 +96,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text(text = "Go to MoreActions Screen")
+                }
+
+                Button(
+                    onClick = { navController.navigate("loadMoreScreen") },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text(text = "Go to LoadMore Screen")
                 }
             }
         }
