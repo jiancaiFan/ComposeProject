@@ -1,4 +1,4 @@
-package cn.fjc920.composetest.uiScreen
+package cn.fjc920.composetest.ui.uiScreen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

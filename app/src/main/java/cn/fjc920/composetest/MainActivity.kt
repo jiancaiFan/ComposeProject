@@ -17,10 +17,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.fjc920.composetest.ui.theme.ComposeTestTheme
-import cn.fjc920.composetest.uiScreen.DownloadPdfScreen
-import cn.fjc920.composetest.uiScreen.LoadMoreScreen
-import cn.fjc920.composetest.uiScreen.MoreActionsScreen
-import cn.fjc920.composetest.uiScreen.ShimmerScreen
+import cn.fjc920.composetest.ui.uiScreen.DownloadPdfScreen
+import cn.fjc920.composetest.ui.uiScreen.LoadMoreScreen
+import cn.fjc920.composetest.ui.uiScreen.MoreActionsScreen
+import cn.fjc920.composetest.ui.uiScreen.ShimmerScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -53,9 +53,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             composable(route = "loadMoreScreen") {
-                LoadMoreScreen (title = "LoadMore", viewModel = viewModel()){
-                    navController.popBackStack()
-                }
+                LoadMoreScreen (
+                    title = "LoadMore",
+                    onBackClick = { navController.popBackStack() },
+                    viewModel = viewModel())
             }
         }
     }

@@ -1,4 +1,4 @@
-package cn.fjc920.composetest.uiScreen
+package cn.fjc920.composetest.ui.uiScreen
 
 import android.Manifest
 import android.content.Context

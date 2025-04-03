@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import cn.fjc920.composetest.ui.uiScreen.DownloadPdfScreen
 import cn.fjc920.composetest.viewModel.PdfDownloadViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule

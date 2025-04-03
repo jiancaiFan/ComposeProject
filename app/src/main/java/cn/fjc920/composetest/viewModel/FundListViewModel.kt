@@ -17,14 +17,15 @@ class FundListViewModel : ViewModel() {
     private val _hasError = MutableStateFlow(false)
     val hasError: StateFlow<Boolean> = _hasError
 
-    private var loadType = LoadType.FAILURE // Default load type
+    private var _loadType = MutableStateFlow(LoadType.SUCCESS)
+    private val loadType: StateFlow<LoadType> = _loadType
 
     init {
         loadInitialItems()
     }
 
     fun setLoadType(type: LoadType) {
-        loadType = type
+        _loadType.value = type
     }
 
     private fun loadInitialItems() {
@@ -36,7 +37,7 @@ class FundListViewModel : ViewModel() {
         _hasError.value = false
         viewModelScope.launch {
             delay(2000) // Simulate network delay
-            if (loadType == LoadType.SUCCESS) {
+            if (loadType.value == LoadType.SUCCESS) {
                 val newItems = _items.value + List(15) { "Item ${_items.value.size + it + 1}" }
                 _items.value = newItems
                 _isLoading.value = false
@@ -52,7 +53,7 @@ class FundListViewModel : ViewModel() {
         _hasError.value = false // Hide error message during retry
         viewModelScope.launch {
             delay(2000) // Simulate network delay
-            if (loadType == LoadType.SUCCESS) {
+            if (loadType.value == LoadType.SUCCESS) {
                 val newItems = _items.value + List(15) { "Item ${_items.value.size + it + 1}" }
                 _items.value = newItems
                 _isLoading.value = false
