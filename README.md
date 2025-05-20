@@ -1,28 +1,74 @@
-### Add PDF Download Feature to PdfScreen
+package cn.fjc920.composetest.ui.uiScreen
 
-#### Description
-This PR introduces a new feature in the `PdfScreen` interface, allowing users to download PDF files and save them to the public directory. The specific implementation includes the following:
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
 
-1. **PdfDownloadViewModel**: Responsible for handling the download and save operations of PDF files.
-    - Provides the `savePdfToPublicDirectory` method to save PDF files to the public directory.
-    - Uses `StateFlow` to manage permission status and save result status.
-2. **PdfScreen**: UI interface, with the added functionality to download PDF files.
-    - Contains a button that starts downloading the PDF file when clicked.
-    - Uses Snackbar to display the save result (success or failure).
-    - Handles permission requests to ensure the necessary permissions are granted before saving the file.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun FilteredTextFieldScreen() {
 
-#### Main Changes
-- Added the `PdfDownloadViewModel` class to handle the logic of downloading and saving PDFs.
-- Added the functionality to download and save PDF files in the `PdfScreen` Composable function.
+    val naviController = rememberNavController()
 
-#### Testing
-- Tested the download and save functionality of PDF files on devices with Android 13 and above.
-- Tested the download and save functionality of PDF files on devices with Android versions below 13.
-- Tested the permission request and handling logic to ensure permissions are requested when not granted and operations continue after permissions are granted.
-<<<<<<< HEAD
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = { Text("我的应用栏") },
+                navigationIcon = {
+                    IconButton(onClick = { naviController.navigateUp() }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowBack,
+                            contentDescription = "返回"
+                        )
+                    }
+                },
+            )
+        }
+    ) { innerPadding ->
+        FilteredTextField(
+            value = "",
+            onValueChange = {},
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
+}
 
----
+@Composable
+fun FilteredTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { newText ->
+            val filtered = newText.filterAndLimitInput()
+            if (filtered == newText) {
+                onValueChange(filtered)
+            }
+            // 非法字符自动过滤，不会出现在输入框
+        },
+        label = { Text("请输入内容") },
+        modifier = modifier,
+        singleLine = true
+    )
+}
 
-Please review the code before merging to ensure all functions are working correctly. If there are any questions or suggestions, please feel free to contact me. Thank you!
-=======
->>>>>>> c94f7d9b1d5aec29e75cbf1a4cf0f572445e6d0a
+private fun String.filterAndLimitInput(maxLength: Int = 50): String {
+    val allowedRegex = Regex("[A-Za-z0-9 ,#%()*\\/;:=?&@+!$€\\-]")
+    return this.filter { allowedRegex.matches(it.toString()) }.take(maxLength)
+}
